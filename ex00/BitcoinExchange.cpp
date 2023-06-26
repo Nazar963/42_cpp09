@@ -3,9 +3,73 @@
 BitcoinExchange::BitcoinExchange(){}
 BitcoinExchange::~BitcoinExchange(){}
 
-void	BitcoinExchange::checkAc(int ac)
+void	BitcoinExchange::checkAc(int ac, char **av)
 {
-	if (ac != 2) throw BitcoinExchange::LowNumberOfArguments();
+	if (ac != 2)
+		throw BitcoinExchange::LowNumberOfArguments();
+	else
+	{
+		std::ifstream file(av[1]);
+		if (!file.is_open()) throw BitcoinExchange::FileNotOpen();
+		else file.close();
+	}
+}
+
+void	BitcoinExchange::openDir()
+{
+	DIR						*dir;
+	struct dirent			*ent;
+	std::string				fileName;
+	std::string				line;
+	std::string				key;
+	long int				new_key;
+	std::string				number;
+	float					num;
+
+	if ((dir = opendir("./")) != NULL)
+	{
+		while ((ent = readdir(dir)) != NULL)
+		{
+			fileName = ent->d_name;
+			if(fileName.size() > 4 && fileName.substr(fileName.size() - 4) == ".csv")
+			{
+				std::ifstream file(fileName.c_str());
+				if (!file.is_open())
+				{
+					throw BitcoinExchange::FileNotOpen();
+					break ;
+				}
+				while (std::getline(file, line))
+				{
+					//! ------------------------------ control date ------------------------------ */
+					for(int i = 0; line[i] != ','; i++)
+						key += line[i];
+					key.erase(std::remove(key.begin(), key.end(), '-'), key.end());
+					std::istringstream iss_key(key);
+					iss_key >> new_key;
+					if (new_key == 0)
+					{
+						key.clear();
+						continue;
+					}
+					//! ------------------------------ control value ----------------------------- */
+					for(size_t i = line.find(',') + 1; i < line.size(); i++)
+						number += line[i];
+					std::istringstream iss_num(number);
+					iss_num >> num;
+					this->loco[new_key] = num;
+					key.clear();
+					number.clear();
+				}
+				file.close();
+				if (this->loco.empty()) throw BitcoinExchange::FileEmpty();
+				break;
+			}
+		}
+		closedir(dir);
+	}
+	else
+		throw BitcoinExchange::DirNotOpen();
 }
 
 bool	BitcoinExchange::isValidDate(int date)

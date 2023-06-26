@@ -3,74 +3,40 @@
 int main(int ac, char **av)
 {
 	BitcoinExchange	levi;
-	try
-	{
-		levi.checkAc(ac);
-	}
-	catch (BitcoinExchange::LowNumberOfArguments& e)
-	{
-		std::cout << e.what() << std::endl;
-		return (0);
-	}
-	std::ifstream file("data.csv");
-	try
-	{
-		if (!file.is_open()) throw BitcoinExchange::FileNotOpen();
 
+	//! -------------------------------------------------------------------------- */
+	//!                               check arguments                              */
+	//! -------------------------------------------------------------------------- */
+	try
+	{
+		levi.checkAc(ac, av);
 	}
-	catch (BitcoinExchange::FileNotOpen& e)
+	catch (std::exception& e)
 	{
 		std::cout << e.what() << std::endl;
 		return (0);
 	}
-	std::map<int, float> loco;
-	std::string line;
-	std::string	key;
-	long int	new_key;
-	std::string number;
-	float num;
-	while (std::getline(file, line))
-	{
-		for(int i = 0; line[i] != ','; i++)
-			key += line[i];
-		key.erase(std::remove(key.begin(), key.end(), '-'), key.end());
-		std::istringstream iss_key(key);
-		iss_key >> new_key;
-		if (new_key == 0)
-		{
-			key.clear();
-			continue;
-		}
-		for(size_t i = line.find(',') + 1; i < line.size(); i++)
-			number += line[i];
-		std::istringstream iss_num(number);
-		iss_num >> num;
-		loco[new_key] = num;
-		key.clear();
-		number.clear();
-	}
-	file.close();
-	try
-	{
-		if (loco.empty()) throw BitcoinExchange::FileEmpty();
-	}
-	catch (BitcoinExchange::FileEmpty& e)
-	{
-		std::cout << e.what() << std::endl;
-		return (0);
-	}
-	std::string what;
-	std::ifstream input(av[1]);
-	try
-	{
-		if (!input.is_open()) throw BitcoinExchange::FileNotOpen();
 
+	//! -------------------------------------------------------------------------- */
+	//!                            open csv and process                            */
+	//! -------------------------------------------------------------------------- */
+	try
+	{
+		levi.openDir();
 	}
-	catch (BitcoinExchange::FileNotOpen& e)
+	catch (std::exception& e)
 	{
 		std::cout << e.what() << std::endl;
 		return (0);
 	}
+
+	/* -------------------------------------------------------------------------- */
+	std::string				key;
+	long int				new_key;
+	std::string				number;
+	float					num;
+	std::string				what;
+	std::ifstream			input(av[1]);
 	while (std::getline(input, what))
 	{
 		for(int i = 0; what[i] != '|'; i++)
@@ -78,7 +44,6 @@ int main(int ac, char **av)
 		key.erase(std::remove(key.begin(), key.end(), '-'), key.end());
 		std::istringstream iss_key_n(key);
 		iss_key_n >> new_key;
-
 		if (new_key == 0 && what[0] != '0')
 		{
 			key.clear();
@@ -88,8 +53,7 @@ int main(int ac, char **av)
 			number += what[i];
 		std::istringstream iss_num_n(number);
 		iss_num_n >> num;
-
-		if (loco[new_key])
+		if (levi.loco[new_key])
 		{
 			if (num < 0)
 			{
@@ -105,7 +69,7 @@ int main(int ac, char **av)
 				number.clear();
 				continue;
 			}
-			float sol = loco[new_key] * num;
+			float sol = levi.loco[new_key] * num;
 			std::ostringstream oss;
 			oss << new_key;
 			std::string new_date = oss.str();
@@ -148,9 +112,9 @@ int main(int ac, char **av)
 				continue;
 			}
 			int old_key = new_key;
-			while (!loco[new_key])
+			while (!levi.loco[new_key])
 				new_key--;
-			float sol = loco[new_key] * num;
+			float sol = levi.loco[new_key] * num;
 			std::ostringstream oss;
 			oss << old_key;
 			std::string new_date = oss.str();

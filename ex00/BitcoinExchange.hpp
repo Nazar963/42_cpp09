@@ -8,13 +8,16 @@
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
+#include <dirent.h> //? to open the file ending with csv inside the ./
 
 class BitcoinExchange
 {
 	public:
+		std::map<int, float>	loco;
 		BitcoinExchange();
-		
-		void			checkAc(int ac);
+
+		void			checkAc(int ac, char **av);
+		void			openDir();
 		bool			isValidDate(int date);
 		std::string		formatDouble(double d);
 
@@ -29,6 +32,10 @@ class BitcoinExchange
 		class FileEmpty : public std::exception
 		{
 			public: const char* what() const throw() { return ("Error: File is empty no key | value pairs were found"); }
+		};
+		class DirNotOpen : public std::exception
+		{
+			public: const char* what() const throw() { return ("Error: Not able to open currect directory"); }
 		};
 
 		~BitcoinExchange();
