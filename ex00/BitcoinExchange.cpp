@@ -36,9 +36,18 @@ void	BitcoinExchange::openDir()
 				std::ifstream file(fileName.c_str());
 				if (!file.is_open())
 				{
+					closedir(dir);
 					throw BitcoinExchange::FileNotOpen();
 					break ;
 				}
+				std::getline(file, line);
+				if (line.compare("date,exchange_rate") != 0)
+				{
+					closedir(dir);
+					throw (BitcoinExchange::WrongFileHeader());
+					break ;
+				}
+
 				while (std::getline(file, line))
 				{
 					//! ------------------------------ control date ------------------------------ */
@@ -67,6 +76,8 @@ void	BitcoinExchange::openDir()
 			}
 		}
 		closedir(dir);
+		if (ent == NULL)
+			throw BitcoinExchange::DirNotOpen();
 	}
 	else
 		throw BitcoinExchange::DirNotOpen();

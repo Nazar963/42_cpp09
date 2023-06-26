@@ -37,10 +37,44 @@ int main(int ac, char **av)
 	float					num;
 	std::string				what;
 	std::ifstream			input(av[1]);
+
+	std::getline(input, what);
+	try
+	{
+		if (what.compare("date | value") != 0)
+			throw BitcoinExchange::WrongFileHeader();
+	}
+	catch(const std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+		return (0);
+	}
 	while (std::getline(input, what))
 	{
-		for(int i = 0; what[i] != '|'; i++)
+		
+		//! ------------------------------ control date ------------------------------ */
+		for(unsigned int i = 0; what[i] != '|' && i < what.size(); i++)
 			key += what[i];
+		key.erase(std::remove(key.begin(), key.end(), ' '), key.end());
+		try
+		{
+			if (key.size() != 10)
+				throw BitcoinExchange::InvalidDate();
+			for (unsigned long i = 0; i < key.size(); i++)
+			{
+				if (i == 4 || i == 7)
+				{
+					if (key[i] != '-')
+						throw BitcoinExchange::InvalidDate();
+				}
+			}
+		}
+		catch(const std::exception& e)
+		{
+			std::cout << e.what() << std::endl;
+			return (0);
+		}
+		
 		key.erase(std::remove(key.begin(), key.end(), '-'), key.end());
 		std::istringstream iss_key_n(key);
 		iss_key_n >> new_key;
@@ -49,10 +83,24 @@ int main(int ac, char **av)
 			key.clear();
 			continue;
 		}
+		//! ------------------------------ control value ----------------------------- */
 		for(size_t i = what.find('|') + 1; i < what.size(); i++)
 			number += what[i];
+
 		std::istringstream iss_num_n(number);
-		iss_num_n >> num;
+		try
+		{
+			if (what.find('|'))
+				if (!(iss_num_n >> num))
+					throw BitcoinExchange::InvalidValue();
+		}
+		catch(const std::exception& e)
+		{
+			std::cout << e.what() << std::endl;
+			levi.loco.clear();
+			return (0);
+		}
+		
 		if (levi.loco[new_key])
 		{
 			if (num < 0)

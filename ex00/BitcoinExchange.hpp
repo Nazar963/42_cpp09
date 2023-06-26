@@ -37,6 +37,18 @@ class BitcoinExchange
 		{
 			public: const char* what() const throw() { return ("Error: Not able to open currect directory"); }
 		};
+		class WrongFileHeader : public std::exception
+		{
+			public: const char* what() const throw() { return ("Error: Wrong File Formating"); }
+		};
+		class InvalidDate : public std::exception
+		{
+			public: const char* what() const throw() { return ("Error: Invalid date format"); }
+		};
+		class InvalidValue : public std::exception
+		{
+			public: const char* what() const throw() { return ("Error: Invalid value format"); }
+		};
 
 		~BitcoinExchange();
 };
